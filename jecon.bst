@@ -1,10 +1,8 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
 % First-written:       <2002/11/03>
-% Time-stamp:	       <2009-06-23 17:41:36 Shiro Takeda>
-% Version 2.6.2
-%
-% $Id: jecon.bst,v 1.11 2009-06-23 08:44:55 st Exp $
+% Time-stamp:	       <2011-06-17 15:52:42 Shiro Takeda>
+% Version 2.7
 %
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
@@ -29,7 +27,7 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "2.6.2" }
+FUNCTION {jecon.version} { "2.7" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
@@ -125,8 +123,8 @@ FUNCTION {jecon.debug}
 % \bysame とは、参考文献部分同じ著者名が連続するときに --- で省略するもの。
 %
 FUNCTION {bst.use.bysame}
-{ #1 }     % #0 以外 -> Use \bysame
-% { #0 }    % Not use \bysame
+% { #1 }     % #0 以外 -> Use \bysame
+{ #0 }    % Not use \bysame
 
 % \bysame の定義。\bysame を使ったときの横棒の形式を変えるには以下の定義を修正
 % する。
@@ -170,6 +168,14 @@ FUNCTION {bst.first.name.initial}
 FUNCTION {bst.title.lower.case}
 { #0 }    % #0 なら小文字に変換しない (そのまま)  (default)
 % { #1 }    % #0 以外なら、小文字に変換する。
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Title を表示するかしないか．
+%
+FUNCTION {bst.hide.title}
+{ #0 }    % #0 -> 表示する．普通はこちら． (default)
+% { #1 }    % #0 以外 -> 隠す (表示しない)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1059,7 +1065,7 @@ ENTRY
   { is.kanji.entry is.kanji.entry.two order.cited }
 
   %% これは entry 別の文字列型変数 (文字列型エントリ変数)
-  { label cyear flabel alabel extra.label sort.label
+  { label cyear flabel alabel extra.label sort.label sort.label.abb
     extra.label.bysame }
 
 %%% 変数宣言
@@ -1092,6 +1098,9 @@ INTEGERS { last.period.comma }
 % 分の表示には無関係．
 
 % sort.label: 文献のソートのための author (editor) 名を保持する変数．
+
+% sort.label.abb: 文献のソートのための author (editor) 名を保持する変数．こちら
+% は abbreviated name での表現．
 
 % sort.key$: 文献のソート (並べ替え) のために利用される文字列を保持する．
 % jecon.debug を非ゼロにすればどのような値が入っているか表示できる (通常は 
@@ -1730,9 +1739,9 @@ FUNCTION {format.title.sub}
   if$
 }
 
-%%% title の整形
 FUNCTION {format.title}
 { title empty$
+  bst.hide.title #0 = not or
     { "" }
     { title is.kanji.str$
       { bst.title.pre.jp title * bst.title.post.jp * }
@@ -3207,6 +3216,25 @@ FUNCTION {sort.format.names}
   while$
 }
 
+%%% ソート用に名前を加工
+FUNCTION {sort.format.names.abb}
+{ 's :=
+  yomi empty$
+     'skip$
+     { yomi 's := }
+  if$
+  s num.names$ 'numnames :=
+  numnames bst.and.others.num <
+     { s sort.format.names }
+     { s is.kanji.str$
+         % author 名が日本語を含むケース
+         { s #1 "{ff }{ll}" format.name$ " et al. " * }
+         { s #1 "{ll}{ ff}{ jj}" format.name$ " et al. " * }
+       if$
+     }
+  if$
+}
+
 %%% Full author name の label の作成
 FUNCTION {format.lab.names.full}
 { 's :=
@@ -3574,6 +3602,63 @@ FUNCTION {calc.cyear}
  if$
 }
 
+FUNCTION {calc.sort.label.abb}
+{ yomi empty$
+    { author empty$
+        { editor empty$
+           { "" }
+           { editor 's := }
+          if$
+        }
+        { author 's := }
+      if$
+    }
+    { yomi 's := }
+  if$
+  s sort.format.names.abb 't := 
+%   numnames #1 =
+%     { s is.kanji.str$
+%         { s #1 "{ff }{ll}" format.name$ 't := }
+%         { s #1 "{ll}{ ff}{ jj}" format.name$ 't := }
+%       if$
+%     }
+%     { numnames #2 =
+%         { s is.kanji.str$
+%             { s #1 "{ff }{ll}" format.name$ " and " * s #2 "{ff }{ll}" format.name$ * 't := }
+%             { s #1 "{ll}{ ff}{ jj}" format.name$ " and " * s #2 "{ll}{ ff}{ jj}" format.name$ * 't := }
+%           if$
+%         }
+%         { s is.kanji.str$
+%             { s #1 "{ff }{ll}" format.name$ " et al. " * 't := }
+%             { s #1 "{ll}{ ff}{ jj}" format.name$ " et al." * 't := }
+%           if$
+%         }
+%       if$
+%     }
+%   if$ 
+%   numnames #1 =
+%     { s is.kanji.str$
+%         { s #1 "{ff }{ll}" format.name$ 't := }
+%         { s #1 "{ll}{ ff}{ jj}" format.name$ 't := }
+%       if$
+%     }
+%     { s is.kanji.str$
+%         { s #1 "{ff }{ll}" format.name$ " et al. " * 't := }
+%         { s #1 "{ll}{ ff}{ jj}" format.name$ " et al." * 't := }
+%       if$
+%     }
+%   if$
+  t sortify " " * year convert.year * 'sort.label.abb :=
+  jecon.debug #0 = not
+    { "sort.label.abb = ``\texttt{" write$
+      sort.label.abb write$
+      "}''\\" write$
+      newline$
+    }
+    'skip$
+  if$
+}
+
 %%% flabel を計算．flabel は引用部分の著者名を保持する変数．reference 部分には
 %%% 関係ない．
 FUNCTION {calc.flabel}
@@ -3679,15 +3764,15 @@ FUNCTION {editor.organization.sort}
 }
 
 %%% 順序をソートするために yomi を加工する。
-FUNCTION {yomi.label}
-{ yomi is.kanji.str$
-    % yomi がひらがなのケース。year (+ month) を付け足すのみ。
-    { yomi " " * year convert.year * }
-    % yomi が alphabet のケース。名前を加工してから小文字に変換し、year を
-    % 付け足す
-    { yomi sort.format.names "l" change.case$ " " * year convert.year * }
-  if$
-}
+% FUNCTION {yomi.label}
+% { yomi is.kanji.str$
+%     % yomi がひらがなのケース。year (+ month) を付け足すのみ。
+%     { yomi " " * year convert.year * }
+%     % yomi が alphabet のケース。名前を加工してから小文字に変換し、year を
+%     % 付け足す
+%     { yomi sort.format.names "l" change.case$ " " * year convert.year * }
+%   if$
+% }
 
 %%% 数字が一文字 (つまり, 1,...,9等) ならその前に 00 を，数字が二文字
 %%% (10,...,99) なら 0 を付ける．10, 11, 12 の指定が 2, 3, 4,... よりも優先さ
@@ -3777,7 +3862,7 @@ FUNCTION {presort.one}
   calc.cyear
   pop$
   ""
-  sort.label *
+  sort.label.abb *
   " "
   bst.no.sort #0 = not
     { * order.cited int.to.str$ add.zero.to.number * " " * }
@@ -3914,7 +3999,7 @@ FUNCTION {presort.two}
     }
   if$
   " " *
-  sort.label *
+  sort.label.abb *
   " " *  
   title is.kanji.str$
     { bst.mixed.order #0 =
@@ -3990,6 +4075,13 @@ FUNCTION {calc.flabel.mess}
     'skip$
  if$
 }
+FUNCTION {calc.sort.label.abb.mess}
+{ jecon.debug #0 = not
+    { "\textbf{Iteration of calc.sort.label.abb}\\" write$
+      newline$ }
+    'skip$
+ if$
+}
 FUNCTION {presort.one.mess}
 { jecon.debug #0 = not
     { "\textbf{Iteration of presort.one (ソート1回目)}\\" write$
@@ -4014,6 +4106,10 @@ ITERATE {calc.alabel}
 EXECUTE {calc.flabel.mess}
 ITERATE {calc.flabel}
 
+%%%
+EXECUTE {calc.sort.label.abb.mess}
+ITERATE {calc.sort.label.abb}
+
 %%% presort の実行 
 EXECUTE {presort.one.mess}
 ITERATE {presort.one}
@@ -4033,24 +4129,24 @@ FUNCTION {forward.pass}
 { bst.use.bysame #0 =
 %   bst.no.sort #0 = not or
     % \bysame を使わない場合
-    { last.sort.label sort.label =
+    { last.sort.label sort.label.abb =
         { last.extra.num #1 + 'last.extra.num :=
           last.extra.num int.to.chr$ 'extra.label :=
         }
         { "a" chr.to.int$ 'last.extra.num :=
           "" 'extra.label :=
-          sort.label 'last.sort.label :=
+          sort.label.abb 'last.sort.label :=
         }
       if$
     }
     % \bysame を使う場合
-    { last.sort.label sort.label =
+    { last.sort.label sort.label.abb =
         { last.extra.num #1 + 'last.extra.num :=
           last.extra.num int.to.chr$ 'extra.label :=
         }
         { "a" chr.to.int$ 'last.extra.num :=
           "" 'extra.label :=
-          sort.label 'last.sort.label :=
+          sort.label.abb 'last.sort.label :=
         }
       if$
       author empty$
