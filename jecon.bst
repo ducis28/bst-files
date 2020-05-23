@@ -1,8 +1,8 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
 % First-written:       <2002/11/03>
-% Time-stamp:	       <2011-06-17 15:52:42 Shiro Takeda>
-% Version 2.7
+% Time-stamp:	       <2013-07-09 17:05:19 st>
+% Version 3.0
 %
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
@@ -27,7 +27,7 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "2.7" }
+FUNCTION {jecon.version} { "3.0" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
@@ -906,6 +906,91 @@ FUNCTION {bst.howpublished.post.jp}
 { "" }    % (default)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       url
+
+% URLフィールド．非ゼロを指定するとURLが表示される．ゼロのときは非表示．
+FUNCTION {bst.show.url}
+{ #1 }    % non-#0 -> URLを表示 (default)
+% { #0 }    % #0 -> URLを非表示
+
+% URLの前に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.url.pre}
+{ ", URL: " }	% (default)
+
+% URLの後に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.url.post}
+{ "" }    % (default)
+
+% URLの前に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.url.pre.jp}
+{ "，URL：" }	% (default)
+
+% URLの後に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.url.post.jp}
+{ "" }    % (default)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Access
+
+% Accessフィールド．accessフィールドはURLにアクセスした日付けを指定しておく．こ
+% れは普通のbibファイルにはないフィールド．
+
+% accessの前に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.access.pre}
+{ ", accessed on " } % (default)
+
+% accessの後に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.access.post}
+{ "" }    % (default)
+
+% accessの前に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.access.pre.jp}
+{ "（アクセス日: " } % (default)
+
+% accessの後に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.access.post.jp}
+{ "）" }    % (default)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       DOI (digital object identifier)
+
+% DOIフィールド．DOIを指定．これも普通のbibファイルにはないフィールド．
+
+% 非ゼロならDOIを表示．ゼロなら非表示．
+FUNCTION {bst.show.doi}
+{ #1 }    % non-#0 -> Show DOI field (default)
+% { #0 }    % #0 -> Not show DOI field.
+
+% DOIの前に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.doi.pre}
+{ ", DOI: \url{http://dx.doi.org/" } % (default)
+
+% DOIの後に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.doi.post}
+{ "}" }    % (default)
+
+% DOIの前に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.doi.pre.jp}
+{ "，DOI: \url{http://dx.doi.org/" } % (default)
+
+% DOIの後に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.doi.post.jp}
+{ "}" }    % (default)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	邦訳書
 
 FUNCTION {bst.hoyakusho.pre.jp}
@@ -959,6 +1044,26 @@ FUNCTION {bst.thebibliography.end}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	その他の関数
+
+% noteの前に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.note.pre}
+{ ", " }    % (default)
+
+% noteの後に付ける文字列 (英語文献用)
+%
+FUNCTION {bst.note.post}
+{ "" }    % (default)
+
+% noteの前に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.note.pre.jp}
+{ "，" }    % (default)
+
+% noteの後に付ける文字列 (日本語文献用)
+%
+FUNCTION {bst.note.post.jp}
+{ "" }    % (default)
 
 % Technical report を表す文字列 (英語文献用)
 %
@@ -1049,9 +1154,9 @@ FUNCTION {bst.th}
 ENTRY
 
   %%% 文献フィールドの宣言
-  { address author booktitle chapter edition editor howpublished
+  { access address author booktitle chapter doi edition editor howpublished
     institution journal key month note number organization pages publisher
-    school series title type volume year yomi
+    school series title type url volume year yomi
 
     % 以下は普通の bst ファイルでは利用されないフィールド
     jauthor jkanyaku jtitle jpublisher jyear
@@ -1342,7 +1447,6 @@ FUNCTION {output.check.nocomma}
     'output.nonnull.nocomma
   if$
 }
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% bbl ファイルへの出力の形式
@@ -2661,6 +2765,49 @@ FUNCTION {format.hoyakusho}
  if$
 }
 
+FUNCTION {format.url}
+{ url empty$
+    { "" }
+    { type$ "online" = bst.show.url or
+        { is.kanji.entry
+            { bst.url.pre.jp "\url{" * url * "}" * bst.url.post.jp *
+                access empty$
+                    { "" * }
+                    { bst.access.pre.jp * access * bst.access.post.jp * }
+                if$
+            }
+            { bst.url.pre "\url{" * url * "}" * bst.url.post *
+                access empty$
+                    { "" * }
+                    { bst.access.pre * access * bst.access.post * }
+                if$
+            }
+          if$
+        }
+        { "" }
+      if$
+    }
+  if$
+}
+
+FUNCTION {format.doi}
+{ doi empty$ bst.show.doi not or
+    { "" }
+    { bst.doi.pre doi * bst.doi.post * }
+  if$
+}
+
+FUNCTION {format.note}
+{ note empty$
+    { "" }
+    { is.kanji.entry
+        { bst.note.pre.jp note * bst.note.post.jp * }
+        { bst.note.pre note * bst.note.post * }
+      if$
+    }
+  if$
+}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	 \havarditem の出力．
 
@@ -2763,8 +2910,9 @@ FUNCTION {article}
     { format.month output.nocomma }
     { format.date output.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2796,8 +2944,9 @@ FUNCTION {book}
     { format.year "year" output.check.nocomma }
   if$
   format.hoyakusho output.nocomma
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2811,8 +2960,9 @@ FUNCTION {booklet}
   format.misc.title "title" output.check.nocomma
   format.howpublished output.nocomma
   format.address output.nocomma
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2843,8 +2993,9 @@ FUNCTION {inbook}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2869,8 +3020,9 @@ FUNCTION {incollection}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2895,8 +3047,9 @@ FUNCTION {inproceedings}
     { format.month output.nocomma }
     { format.date output.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2941,8 +3094,9 @@ FUNCTION {manual}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2964,8 +3118,9 @@ FUNCTION {mastersthesis}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -2986,8 +3141,33 @@ FUNCTION {misc}
     { format.month output.nocomma }
     { format.date output.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
+  fin.entry
+  empty.misc.check
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	online の処理
+
+FUNCTION {online}
+{ output.bibitem
+  format.authors "author" output.check.nocomma
+  bst.year.backward #0 =
+    { format.year "year" output.check.nocomma }
+    'skip$
+  if$
+  format.misc.title output.nocomma
+  format.howpublished output.nocomma
+  remove.irrelevant.kutoten
+  bst.year.backward #0 =
+    { format.month output.nocomma }
+    { format.date output.nocomma }
+  if$
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
   empty.misc.check
 }
@@ -3014,8 +3194,9 @@ FUNCTION {phdthesis}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -3040,8 +3221,9 @@ FUNCTION {proceedings}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -3064,8 +3246,9 @@ FUNCTION {techreport}
     'skip$
     { format.year "year" output.check.nocomma }
   if$
-  new.block
-  note output.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
@@ -3084,8 +3267,9 @@ FUNCTION {unpublished}
     { format.month remove.pre.comma.period output.nocomma }
     { format.date remove.pre.comma.period output.nocomma }
   if$
-  new.block
-  note "note" output.check.nocomma
+  format.url output.nocomma
+  format.doi output.nocomma
+  format.note output.nocomma
   fin.entry
 }
 
