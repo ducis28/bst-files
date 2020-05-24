@@ -1,8 +1,8 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
 % First-written:       <2002/11/03>
-% Time-stamp:	       <2013-07-09 17:05:19 st>
-% Version 3.0
+% Time-stamp:	       <2014-01-27 23:31:25 dolphin>
+% Version 3.1
 %
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
@@ -27,7 +27,7 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "3.0" }
+FUNCTION {jecon.version} { "3.1" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
@@ -123,8 +123,8 @@ FUNCTION {jecon.debug}
 % \bysame とは、参考文献部分同じ著者名が連続するときに --- で省略するもの。
 %
 FUNCTION {bst.use.bysame}
-% { #1 }     % #0 以外 -> Use \bysame
-{ #0 }    % Not use \bysame
+{ #1 }     % #0 以外 -> Use \bysame
+% { #0 }    % Not use \bysame
 
 % \bysame の定義。\bysame を使ったときの横棒の形式を変えるには以下の定義を修正
 % する。
@@ -151,6 +151,24 @@ FUNCTION {bst.author.name}
 
 % [#2 のケース] 全員「名 姓」のケース。
 % Masahisa Fujita, Paul R. Krugman, and Anthony J. Venables.
+
+% Economics の reference では, first author 名は「姓, 名」の順番で表記し、
+% second author 以下は「名 姓」とするという場合が多いが、これを変更するための関数。
+% Editor にも適用。日本語文献は関係なし。#0 か #1 か #2 を選択可。
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% bibファイルにおける日本人名の記述方法の選択。
+%
+% 普通のbibファイルでは日本人名は「author = {姓 名}」という書き方をする。しかし、
+% 一部の文献管理ソフトは日本人名を「author = {姓, 名}」という形式でbibファイルに
+% 出力する。bibファイルがこのどちらの形式で記述されているかの選択。editor、yomi、
+% jauthorにも同じ選択が適用されます。詳しくはjecon-sample.pdfで。
+%
+FUNCTION {bst.sei.mei.order}
+{ #0 }    % (default) 普通の書き方 → author = {武田 史郎} or author = {史郎, 武田}
+% { #1 }    % 逆の書き方 → author = {武田, 史郎} or author = {史郎 武田} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1595,12 +1613,17 @@ FUNCTION {format.names}
         { nameptr 'name.num :=
           s set.alphabet.in.author
           alphabet.in.author #0 =
-            % first name も日本語のケース
+            % first nameが日本語のケース（日本人名ということ）
 
             % 注：日本語の author は "姓 名" の順で指定されるが、bst では
             % 順番通りに姓＝first name、名＝last name として扱われる。
-            { s nameptr "{ff}" format.name$ 'ss :=
-              s nameptr "{ll}" format.name$ 'tt :=
+            { bst.sei.mei.order #0 =
+                { s nameptr "{ff}" format.name$ 'ss :=
+                  s nameptr "{ll}" format.name$ 'tt := }
+                % 普通と逆順のケース
+                { s nameptr "{ll}" format.name$ 'ss :=
+                  s nameptr "{ff}" format.name$ 'tt := }
+              if$
               ss "" =
                 %% 姓のみのケースはそのまま
                 { tt 't := }
@@ -1766,7 +1789,7 @@ FUNCTION {format.editors}
 FUNCTION {format.editors.x}
 { editor empty$
     { "" }
-    { editor format.names
+    { editor format.names 
       editor num.names$ #1 >
  	{ editor is.kanji.str$
  	    { bst.editor.jp * }
@@ -3383,7 +3406,11 @@ FUNCTION {sort.format.names}
 	'skip$
       if$
       s is.kanji.str$
-         { s nameptr "{ff }{ll}" format.name$ 't := }
+         { bst.sei.mei.order #0 =
+             { s nameptr "{ff }{ll}" format.name$ 't := }
+             { s nameptr "{ll }{ff}" format.name$ 't := }
+           if$
+         }
          { s nameptr "{ll}{ ff}{ jj}" format.name$ 't := }
       if$
       nameptr numnames = t "others" = and
@@ -3412,7 +3439,11 @@ FUNCTION {sort.format.names.abb}
      { s sort.format.names }
      { s is.kanji.str$
          % author 名が日本語を含むケース
-         { s #1 "{ff }{ll}" format.name$ " et al. " * }
+         { bst.sei.mei.order #0 =
+             { s #1 "{ff }{ll}" format.name$ " et al. " * }
+             { s #1 "{ll }{ff}" format.name$ " et al. " * }
+           if$
+         }
          { s #1 "{ll}{ ff}{ jj}" format.name$ " et al. " * }
        if$
      }
@@ -3428,24 +3459,21 @@ FUNCTION {format.lab.names.full}
     { namesleft #0 > }
       { s is.kanji.str$
           % author 名に日本語含むケース
-
           { nameptr 'name.num :=
             s set.alphabet.in.author
             alphabet.in.author #0 =
-              % first name も日本語
-              { s nameptr "{ff}" format.name$ 't :=
+              % first name も日本語（日本人名のケース）
+              { bst.sei.mei.order #0 =
+                  { s nameptr "{ff}" format.name$ 't := }
+                  { s nameptr "{ll}" format.name$ 't := }
+                if$
                 t empty$
                   { s #1 "{ll}" format.name$ 't := }
                   'skip$
                 if$
               }
-              % first name が alphabet のケース
-              { s nameptr "{ll}" format.name$ 't :=
-                t empty$
-                  { s #1 "{ff}" format.name$ 't := }
-                  'skip$
-                if$
-              }
+              % first name が alphabet のケース（外国人名のケース）
+              { s nameptr "{ll}" format.name$ 't := }
             if$
 	    nameptr #1 >
               { namesleft #1 >
@@ -3504,24 +3532,23 @@ FUNCTION {format.lab.names.abb}
          { #1 'name.num :=
            s set.alphabet.in.author
            alphabet.in.author #0 =
-            % first name も日本語のケース
-
+            % first name も日本語のケース（日本人名のケース）
+            
             % 注：日本語の author は "姓 名" の順で指定されるが、bst では
             % 順番通りに姓＝first name、名＝last name として扱われる。
-            { s #1 "{ff}" format.name$ 't :=
-              t empty$
-                { s #1 "{ll}" format.name$ }
-                { s #1 "{ff}" format.name$ }
+            { bst.sei.mei.order #0 =
+                { s #1 "{ff}" format.name$ 't := }
+                { s #1 "{ll}" format.name$ 't := }
               if$
-            bst.and.others.jp * }
+              t empty$
+                { s #1 "{ll}" format.name$ 't := }
+                'skip$
+              if$
+              t bst.and.others.jp * }
 
-            % first name が alphabet のケース
-            { s #1 "{ll}" format.name$ 't :=
-              t empty$
-                { s #1 "{ff}" format.name$ }
-                { s #1 "{ll}" format.name$ }
-              if$
-            bst.and.others.jp * }
+            % first name が alphabet のケース（外国人名のケース）
+            { s #1 "{ll}" format.name$ 't := 
+              t bst.and.others.jp * }
           if$
          }
          % author名がアルファベットのケース
@@ -3800,38 +3827,6 @@ FUNCTION {calc.sort.label.abb}
     { yomi 's := }
   if$
   s sort.format.names.abb 't := 
-%   numnames #1 =
-%     { s is.kanji.str$
-%         { s #1 "{ff }{ll}" format.name$ 't := }
-%         { s #1 "{ll}{ ff}{ jj}" format.name$ 't := }
-%       if$
-%     }
-%     { numnames #2 =
-%         { s is.kanji.str$
-%             { s #1 "{ff }{ll}" format.name$ " and " * s #2 "{ff }{ll}" format.name$ * 't := }
-%             { s #1 "{ll}{ ff}{ jj}" format.name$ " and " * s #2 "{ll}{ ff}{ jj}" format.name$ * 't := }
-%           if$
-%         }
-%         { s is.kanji.str$
-%             { s #1 "{ff }{ll}" format.name$ " et al. " * 't := }
-%             { s #1 "{ll}{ ff}{ jj}" format.name$ " et al." * 't := }
-%           if$
-%         }
-%       if$
-%     }
-%   if$ 
-%   numnames #1 =
-%     { s is.kanji.str$
-%         { s #1 "{ff }{ll}" format.name$ 't := }
-%         { s #1 "{ll}{ ff}{ jj}" format.name$ 't := }
-%       if$
-%     }
-%     { s is.kanji.str$
-%         { s #1 "{ff }{ll}" format.name$ " et al. " * 't := }
-%         { s #1 "{ll}{ ff}{ jj}" format.name$ " et al." * 't := }
-%       if$
-%     }
-%   if$
   t sortify " " * year convert.year * 'sort.label.abb :=
   jecon.debug #0 = not
     { "sort.label.abb = ``\texttt{" write$
@@ -4237,7 +4232,7 @@ FUNCTION {presort.two}
   jecon.debug #0 = not
     { "\verb|sort.key$| = ``\texttt{" write$
       sort.key$ write$
-      "}''\\" write$
+      "+}''\\" write$
       newline$
     }
     'skip$
