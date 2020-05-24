@@ -1,8 +1,8 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
 % First-written:       <2002/11/03>
-% Time-stamp:	       <2014-01-27 23:31:25 dolphin>
-% Version 3.1
+% Time-stamp:	       <2015-01-23 00:20:34 st>
+% Version 3.2
 %
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
@@ -27,7 +27,7 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "3.1" }
+FUNCTION {jecon.version} { "3.2" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
@@ -934,22 +934,22 @@ FUNCTION {bst.show.url}
 % URLの前に付ける文字列 (英語文献用)
 %
 FUNCTION {bst.url.pre}
-{ ", URL: " }	% (default)
+{ ", URL: \url{" }	% (default)
 
 % URLの後に付ける文字列 (英語文献用)
 %
 FUNCTION {bst.url.post}
-{ "" }    % (default)
+{ "}" }    % (default)
 
 % URLの前に付ける文字列 (日本語文献用)
 %
 FUNCTION {bst.url.pre.jp}
-{ "，URL：" }	% (default)
+{ "，URL：\url{" }	% (default)
 
 % URLの後に付ける文字列 (日本語文献用)
 %
 FUNCTION {bst.url.post.jp}
-{ "" }    % (default)
+{ "}" }    % (default)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2793,13 +2793,13 @@ FUNCTION {format.url}
     { "" }
     { type$ "online" = bst.show.url or
         { is.kanji.entry
-            { bst.url.pre.jp "\url{" * url * "}" * bst.url.post.jp *
+            { bst.url.pre.jp url * bst.url.post.jp *
                 access empty$
                     { "" * }
                     { bst.access.pre.jp * access * bst.access.post.jp * }
                 if$
             }
-            { bst.url.pre "\url{" * url * "}" * bst.url.post *
+            { bst.url.pre url * bst.url.post *
                 access empty$
                     { "" * }
                     { bst.access.pre * access * bst.access.post * }
@@ -3463,9 +3463,14 @@ FUNCTION {format.lab.names.full}
             s set.alphabet.in.author
             alphabet.in.author #0 =
               % first name も日本語（日本人名のケース）
-              { bst.sei.mei.order #0 =
-                  { s nameptr "{ff}" format.name$ 't := }
-                  { s nameptr "{ll}" format.name$ 't := }
+              { s nameptr "{ll}" format.name$ 't :=
+                t "others" =
+                  'skip$
+                  { bst.sei.mei.order #0 =
+                     { s nameptr "{ff}" format.name$ 't := }
+                     { s nameptr "{ll}" format.name$ 't := }
+                   if$
+                  }
                 if$
                 t empty$
                   { s #1 "{ll}" format.name$ 't := }
@@ -4385,7 +4390,7 @@ FUNCTION{punctuation}
   "%"                                                                    write$ newline$
   "%  This bbl file is created by jecon.bst ver." jecon.version *        write$ newline$
   "%  The latest jecon.bst is available at"                              write$ newline$
-  "%  <http://shirotakeda.org/home-ja/tex-ja/jecon-ja.html>"             write$ newline$
+  "%  <http://shirotakeda.org/ja/tex-ja/jecon-ja.html>"             write$ newline$
   "%"                                                                    write$ newline$
   "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"  write$ newline$
   newline$
