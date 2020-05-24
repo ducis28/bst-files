@@ -1,0 +1,156 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  This bbl file is created by jecon.bst ver.2.6.2
+%  The latest jecon.bst is available at
+%  <http://shirotakeda.org/home-ja/tex-ja/jecon-ja.html>
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Definition of \bysame
+\ifx\undefined\bysame
+\newcommand{\bysame}{\hskip.3em \leavevmode\rule[.5ex]{3em}{.3pt}\hskip0.5em}
+\fi
+
+
+\begin{thebibliography}{xxx}
+
+
+
+\harvarditem[Brezis et~al.]{Brezis, Krugman and
+  Tsiddon}{1993}{brezis93:_leapf_inter_compet}
+Brezis, Elise~S., Paul~R. Krugman, and Daniel Tsiddon (1993) ``Leapfrogging in
+  International Competition: A Theory of Cycles in National Technological
+  Leadership,'' {\it American Economic Review}, Vol. 83, No. 5, pp. 1211-1219,
+  December.
+
+\harvarditem[Brooke et~al.]{Brooke, Kendrick, Meeraus and
+  Raman}{2003}{brooke03:_gams}
+Brooke, Anthony, David Kendrick, Alexander Meeraus, and Ramesh Raman (2003)
+  {\it {GAMS}: A User's Guide}, GAMS Development Corporation.
+
+\harvarditem[Fujita et~al.]{Fujita, Krugman and
+  Venables}{1999}{fujita99jp:_spatial_econom}
+Fujita, Masahisa, Paul~R. Krugman, and Anthony~J. Venables (1999)  {\it The
+  Spatial Economy}, Cambridge, MA: MIT Press,
+  （小出博之訳，『空間経済学』，東洋経済新報社，2000年）.
+
+\harvarditem[服部・石田]{服部・石田}{2000}{Hattori00}
+服部保・石田弘明 (2000)
+  「宮崎県中部における照葉樹林の樹林面積と種多様性，種組成の関係」，『日本生態学会誌』，第50巻，221-234頁．
+
+\harvarditem[服部他]{服部・石田・小舘・南山}{2002}{Hattori02}
+服部保・石田弘明・小舘誓治・南山典子 (2002)
+  「照葉樹林フロラの特徴と絶滅のおそれのある照葉樹林構成種の現状」，『ランドスケープ研究』，第65巻，609--614頁．
+
+\harvarditem[服部・南山]{服部・南山}{2001}{Hattori01}
+服部保・南山典子 (2001)
+  「九州以北の照葉樹林フロラ」，『人と自然』，第12巻，91-104頁．
+
+\harvarditem[Ishikawa]{Ishikawa}{1994}{ishikawa94:_revis_stolp_samuel_rybcz_theor_produc_exter}
+Ishikawa, Jota (1994) ``Revisiting the {Stolper}-{Samuelson} and the
+  {Rybczynski} Theorems with Production Externalitities,'' {\it Canadian
+  Journal of Economics}, Vol. 27, No. 1, pp. 101-111.
+
+\harvarditem[Ishikawa and Kiyono]{Ishikawa and
+  Kiyono}{2003}{ishikawa03:_green_gas_emiss_contr_open_econom}
+Ishikawa, Jota and Kazuharu Kiyono (2003) ``Greenhouse-Gas Emission Controls in
+  an Open Economy,'' November. {COE-RES} Discussion Paper Series, Center of
+  Excellence Project, Graduate School of Economics and Institute of Economics
+  Research, Hitotsubashi University.
+
+\harvarditem[片山]{片山}{2001}{katayama2001}
+片山恭一 (2001) 『世界の中心で愛を叫ぶ』，小学館．
+
+\harvarditem[Krugman]{Krugman}{1991a}{krugman91:_geogr_trade}
+Krugman, Paul~R. (1991a)  {\it Geography and Trade}, Cambridge, MA: MIT Press.
+
+\harvarditem[Krugman]{Krugman}{1991b}{krugman91:_is_bilat_bad}
+\bysame  (1991b) ``Is Bilateralism Bad?'' in Helpman, Elhanan and Assaf Razin
+  eds.   {\it International Trade and Trade Policy}, Cambridge, MA: MIT Press,
+  pp. 9-23.
+
+\harvarditem[Lucas]{Lucas}{1976}{lucas76:_econom_polic_evaluat}
+Lucas, Robert~E., Jr. (1976) ``Econometric Policy Evaluation: A Critique,'' in
+  {\it The Phillips Curve and Labor Markets}, Vol. 1 of Carnegie Rochester
+  Conference Series on Public Policy, Amsterdam: North-Holland, pp. 19-46.
+
+\harvarditem[Milne-Thomson]{Milne-Thomson}{1968}{milne-thomson68:_theor_hydrod}
+Milne-Thomson, L.~M. (1968)  {\it Theoretical Hydrodynamics}, 5th edition, p.
+  480, London: Ma{C}millan Press.
+
+\harvarditem[西村]{西村}{1990}{nishimura90:_micr_econ}
+西村和雄 (1990) 『ミクロ経済学』，東洋経済新報社．
+
+\harvarditem[Rutherford and Paltsev]{Rutherford and
+  Paltsev}{2000}{rutherford00:_gtapin_gtap_eg}
+Rutherford, Thomas~F. and Sergey~V. Paltsev (2000) ``{GTAPinGAMS} and
+  {GTAP-EG}: Global Datasets for Economic Research and Illustrative Models,''
+  September. Working Paper, University of Colorad, Department of Economics,
+  (available at:\\ \url{http://www.mpsge.org/gtap5/index.html}).
+
+\harvarditem[Wang et~al.]{Wang, Blomquist and
+  Spencer}{1989}{wang89:_model_therm_hydrod_aspec_molten}
+Wang, S.~K., C.~A. Blomquist, and B.~W. Spencer (1989) ``Modeling of Thermal
+  and Hydrodynamic Aspects of Molten Jet/Water Interactions,'' in  {\it ANS
+  Proc. 1989 National Heat Transfer Conference}, Vol. 4, pp. 225-232,
+  Philadelphia, September~6.
+
+\harvarditem[Wong]{Wong}{1995}{wong95:_inter_trade_goods_factor_mobil_}
+Wong, {Kar-yiu} (1995)  {\it International Trade in Goods and Factor Mobility},
+  Chap.~2, pp. 23-84, Cambridge, MA: MIT Press.
+
+\harvarditem[石川]{石川}{2002}{isikawa02jp:_env_trade}
+石川城太 (2002)
+  「環境政策と国際貿易」，池間誠・大山道広（編）『国際日本経済論』，文眞堂，第7章，114-129頁．
+
+\harvarditem[伊藤・大山]{伊藤・大山}{1985}{ito85:_inte_trad}
+伊藤元重・大山道広 (1985) 『国際貿易』，モダン・エコノミクス 14，岩波書店．
+
+\harvarditem[今井他]{今井・宇沢・小宮・根岸・村上}{1971}{imai71:_micr_1}
+今井賢一・宇沢弘文・小宮隆太郎・根岸隆・村上泰亮 (1971) 『価格理論
+  I』，岩波書店．
+
+\harvarditem[今井他]{今井・宇沢・小宮・根岸・村上}{1972}{imai72:_micr_2}
+\bysame  (1972) 『価格理論 II』，岩波書店．
+
+\harvarditem[岩本]{岩本}{1991}{iwamoto91jp:haito-keika}
+岩本康志 (1991) 「配当軽課制度廃止の経済的効果 --- 89 年法人税改革の分析
+  ---」，『経済研究』，第42巻，第2号，127-138頁，4月．
+
+\harvarditem[大山]{大山}{1999}{oyama99:_mark_stru}
+大山道広 (1999)
+  「市場構造・経済厚生・国際貿易」，岡田章・神谷和也・柴田弘文・伴金美（編）『現代経済学の潮流
+  1999』，東洋経済新報社，3-34頁．
+
+\harvarditem[清野]{清野}{1993}{kiyono93:_regu_comp_1}
+清野一治 (1993) 『規制と競争の経済学』，27-31頁，東京大学出版会，東京．
+
+\harvarditem[黒田他]{黒田・新保・野村・小林}{1997}{kuroda97jp:keo}
+黒田昌裕・新保一成・野村浩二・小林信行 (1997) 『KEOデータベース ---
+  産出および資本・労働投入の測定 ---』，Keio Economic Observatory Monograph
+  Series，第8号，慶應義塾大学産業研究所．
+
+\harvarditem[総務省]{総務省}{2004}{somusho04jp:2000io-kaisetsu}
+総務省（編） (2004) 『平成12年 (2000年) 産業連関表 --- 総合解説編
+  ---』，財団法人 全国統計協会連合会．
+
+\harvarditem[バロー]{バロー}{1997}{barro97jp}
+バロー，R.~J. (1997) 『経済学の正しい使用法
+  －政府は経済に手を出すな－』，東洋経済新報社，（仁平和夫訳）．
+
+\harvarditem[マークセン他]{マークセン・ケンプファー・メルヴィン・マスカス}{1999}{markusen99jp:trade_vol_1}
+マークセン，J.~R.・W.~H. ケンプファー・J.~R. メルヴィン・K.~E. マスカス (1999)
+  『国際貿易－理論と実証〈上〉』，多賀出版，（松村敦子訳）．
+
+\harvarditem[宮沢]{宮沢}{2002}{miyazawa02:_io_intr}
+宮沢健一（編） (2002) 『産業連関分析入門〈新版〉』，日本経済新聞社，第7版．
+
+\harvarditem[Takeda]{Takeda}{2007}{takeda06:_cge_analy_welfar_effec_trade}
+Takeda, Shiro (2007) ``The Double Dividend from Carbon Regulations in
+  {Japan},'' {\it Journal of the Japanese and International Economies}, Vol.
+  21, No. 3, pp. 336-364, September. \url{http://shirotakeda.org/}.
+
+
+\end{thebibliography}
+
+
