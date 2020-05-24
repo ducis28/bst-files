@@ -1,9 +1,13 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
-% First-written:       <2002/11/03>
-% Time-stamp:	       <2017-08-19 12:14:16 st>
-% Version 5.4
-%
+% Author: Shiro Takeda
+% Maintainer: Shiro Takeda
+% First-written: <2002/11/03>
+% Time-stamp: <2018-12-22 12:36:44 st>
+% Version 5.5
+% Keywords: TeX, BibTeX, bst 
+% URL: https://github.com/ShiroTakeda/jecon-bst
+
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
 % 改変には
@@ -27,13 +31,12 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "5.4" }
+FUNCTION {jecon.version} { "5.5" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
 { #0 }    % Debug mode off.
 % { #1 }    % Debug mode on.
-
 
 % 以下は元の jpolisci.bst のヘッダー部分です．
 %
@@ -112,6 +115,27 @@ FUNCTION {jecon.debug}
 %% 「キーワード」：\cite命令の引数となる各エントリーに指定されている文字列のこ
 %% と．
 
+ENTRY
+  %%% 文献フィールドの宣言
+  { access address author booktitle chapter doi edition editor howpublished
+    institution journal key month note number organization pages publisher
+    school series title type url volume year yomi language
+
+    % 以下は普通の bst ファイルでは利用されないフィールド
+    jauthor jkanyaku jtitle jpublisher jyear
+    order absorder translator kanyaku
+  }
+
+  % 以下，エントリー変数の定義．エントリー変数とは，文献エントリー別に異なっ
+  % た値を持つ変数のこと．
+
+  %% これは entry 別の整数型変数 (整数型エントリ変数)
+  { is.kanji.entry is.kanji.entry.two order.cited is.kanji.entry.author }
+
+  %% これは entry 別の文字列型変数 (文字列型エントリ変数)
+  { label cyear flabel alabel extra.label sort.label sort.label.abb
+    extra.label.bysame }
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %%	カスタマイズのための関数
@@ -167,14 +191,17 @@ FUNCTION {bst.author.name}
 
 % bibファイルにおける日本人名の記述方法の選択。
 %
-% 普通のbibファイルでは日本人名は「author = {姓 名}」という書き方をする。しかし、
-% 一部の文献管理ソフトは日本人名を「author = {姓, 名}」という形式でbibファイルに
-% 出力する。bibファイルがこのどちらの形式で記述されているかの選択。editor、yomi、
-% jauthorにも同じ選択が適用されます。詳しくはjecon-sample.pdfで。
+% 普通のbibファイルではauthorフィールドで日本人名は「author = {姓 名}」という書
+% き方をする。しかし、一部の文献管理ソフト、データベースでは日本人名も外国人名と
+% 同様に「author = {姓, 名}」という形式で扱っている。この関数でどちらの形式で扱
+% うかを決める。editor、yomi、jauthorにも同じ選択が適用されます。詳しくは
+% jecon-sample.pdfを見てください。
+%
+% 注：ver.5.5からデフォールトの設定を「author = {姓, 名}」に変更しました。
 %
 FUNCTION {bst.sei.mei.order}
-{ #0 }    % (default) 普通の書き方 → author = {武田 史郎} or author = {史郎, 武田}
-% { #1 }    % 逆の書き方 → author = {武田, 史郎} or author = {史郎 武田} 
+{ #1 }    % (default) → author = {武田, 史郎} or author = {史郎 武田} 
+% { #0 }    % 昔からの普通の書き方 → author = {武田 史郎} or author = {史郎, 武田}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -277,9 +304,9 @@ FUNCTION {bst.number.index.bibhang.hund}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% ユニコード文字を利用するときには非ゼロにする。
-% 使い方については「jecon_unicode_xelatex.pdf」を見てください。
-% 
+% ユニコード文字を利用するとき（pbibtex ではなく、upbibtex を利用するとき）には
+% 非ゼロにする。使い方については「jecon_unicode_lualatex.pdf」を見てください。
+%
 FUNCTION {bst.use.unicode}
 { #0 }    % Not use unicode font (default)
 % { #1 }    % Use unicode font
@@ -1042,7 +1069,7 @@ FUNCTION {bst.show.doi}
 % DOIの前に付ける文字列 (英語文献用)
 %
 FUNCTION {bst.doi.pre}
-{ ", DOI: \url{http://dx.doi.org/" } % (default)
+{ ", DOI: \href{http://dx.doi.org/" doi * "}{" * } % (default)
 
 % DOIの後に付ける文字列 (英語文献用)
 %
@@ -1052,7 +1079,7 @@ FUNCTION {bst.doi.post}
 % DOIの前に付ける文字列 (日本語文献用)
 %
 FUNCTION {bst.doi.pre.jp}
-{ "，DOI：\url{http://dx.doi.org/" } % (default)
+{ "，DOI: \href{http://dx.doi.org/" doi * "}{" * } % (default)
 
 % DOIの後に付ける文字列 (日本語文献用)
 %
@@ -1068,9 +1095,9 @@ FUNCTION {bst.doi.post.jp}
 % #2 -> DOI のみ表示
 %
 FUNCTION {bst.url.doi}
-{ #0 }    % (default) -> 両方表示
+% { #0 }    % (default) -> 両方表示
 % { #1 }    % -> URL のみ表示
-% { #2 }    % -> DOI のみ表示
+{ #2 }    % -> DOI のみ表示
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	邦訳書
@@ -1233,29 +1260,7 @@ FUNCTION {bst.th}
 %
 % 引数が二つ以上の関数の定義 --> 関数 chop.word を参照。
 
-ENTRY
-
-  %%% 文献フィールドの宣言
-  { access address author booktitle chapter doi edition editor howpublished
-    institution journal key month note number organization pages publisher
-    school series title type url volume year yomi language
-
-    % 以下は普通の bst ファイルでは利用されないフィールド
-    jauthor jkanyaku jtitle jpublisher jyear
-    order absorder translator kanyaku
-  }
-
-  % 以下，エントリー変数の定義．エントリー変数とは，文献エントリー別に異なっ
-  % た値を持つ変数のこと．
-
-  %% これは entry 別の整数型変数 (整数型エントリ変数)
-  { is.kanji.entry is.kanji.entry.two order.cited is.kanji.entry.author }
-
-  %% これは entry 別の文字列型変数 (文字列型エントリ変数)
-  { label cyear flabel alabel extra.label sort.label sort.label.abb
-    extra.label.bysame }
-
-%%% 変数宣言
+%% 変数宣言
 
 %% 文字列型大域変数
 STRINGS { s t ss tt sss }
@@ -2693,8 +2698,8 @@ FUNCTION {format.bvolume}
 	'skip$
 	%% series もあるとき
 	{ is.kanji.entry
-	    { bst.series.pre.jp * series convert.num * bst.series.post.jp * }
-	    { " of " * series * bst.series.post * }
+	   { bst.series.pre.jp * series convert.num * bst.series.post.jp * }
+	   { " of " * series * bst.series.post * }
 	  if$
 	}
       if$
