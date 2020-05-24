@@ -1,8 +1,8 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
 % First-written:       <2002/11/03>
-% Time-stamp:	       <2016-03-26 22:52:22 st>
-% Version 5.1
+% Time-stamp:	       <2016-08-28 13:40:17 st>
+% Version 5.1.1
 %
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
@@ -27,7 +27,7 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "5.1" }
+FUNCTION {jecon.version} { "5.1.1" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
@@ -552,7 +552,7 @@ FUNCTION {bst.title.post.jp}
 % book の title 前に付ける文字列 (英語文献用)
 %
 FUNCTION {bst.book.pre}
-{ " {\it " }    % (default)
+{ " \textit{ " }    % (default)
 
 % book の title 後に付ける文字列 (英語文献用)
 %
@@ -575,7 +575,7 @@ FUNCTION {bst.book.post.jp}
 % booktitle の前に付ける文字列 (英語文献用)
 %
 FUNCTION {bst.btitle.pre}
-{ " {\it " }    % (default)
+{ " \textit{ " }    % (default)
 
 % booktitle の後に付ける文字列 (英語文献用)
 %
@@ -598,7 +598,7 @@ FUNCTION {bst.btitle.post.jp}
 % journal name の前に付ける文字列 (英語文献用)
 %
 FUNCTION {bst.journal.pre}
-{ " {\it " }    % (default)
+{ " \textit{ " }    % (default)
 
 % journal name の後に付ける文字列 (英語文献用)
 %
@@ -1432,6 +1432,8 @@ FUNCTION {period.comma.b.p}
   pc #-1 #2 substring$ ",~" = or
   pc #-1 #1 substring$ "。" = or
   pc #-1 #1 substring$ "．" = or
+  pc #-1 #1 substring$ "、" = or
+  pc #-1 #1 substring$ "，" = or
     { #1 'comma.period.b.p := }
     { #0 'comma.period.b.p := }
   if$
