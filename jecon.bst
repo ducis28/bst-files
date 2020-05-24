@@ -1,8 +1,8 @@
 % jecon.bst: 経済学用 BibTeX style file.
 %
 % First-written:       <2002/11/03>
-% Time-stamp:	       <2015-01-23 00:20:34 st>
-% Version 3.2
+% Time-stamp:	       <2016-02-03 19:00:43 st>
+% Version 4.0
 %
 % これは，飯田修さんによって作成された jpolisci.bst を経済学用に
 % 武田史郎が改変したものです．
@@ -27,7 +27,7 @@
 % 変更履歴 (Changelog) は CHANGES.txt ファイルを見てください．
 
 % version 指定
-FUNCTION {jecon.version} { "3.2" }
+FUNCTION {jecon.version} { "4.0" }
 
 % Debug mode．0 以外を指定すると様々な情報を表示させることが可能．
 FUNCTION {jecon.debug}
@@ -123,14 +123,20 @@ FUNCTION {jecon.debug}
 % \bysame とは、参考文献部分同じ著者名が連続するときに --- で省略するもの。
 %
 FUNCTION {bst.use.bysame}
-{ #1 }     % #0 以外 -> Use \bysame
 % { #0 }    % Not use \bysame
+{ #1 }    % -> Use \bysame (default)
+% { #2 }    % -> Use \bysame of alternative style.
 
 % \bysame の定義。\bysame を使ったときの横棒の形式を変えるには以下の定義を修正
 % する。
 %
 FUNCTION {bst.bysame.definition}
 { "\hskip.3em \leavevmode\rule[.5ex]{3em}{.3pt}\hskip0.5em" } 
+
+% 日本語文献用の \bysame （\bysamejp）の定義
+% とりあえず英語文献用と同じ定義にしておく。
+FUNCTION {bst.bysame.definition.jp}
+{ "\hskip.2em \leavevmode\rule[.7ex]{2.5em}{.3pt}\hskip0.3em" } 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -271,17 +277,6 @@ FUNCTION {bst.number.index.bibhang.hund}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% year の表示位置を変更。
-%
-% 0 なら author のすぐ後に year を表示。0 以外なら year は後ろにもってくる。後
-% ろとは note フィールドがなければ一番最後，note フィールドがあれば note フィー
-% ルドを表示する前．
-FUNCTION {bst.year.backward}
-{ #0 }    % (default)
-% { #1 }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % 日本語文献の数字を漢数字にする．
 %
 % 縦書き用です．
@@ -299,6 +294,27 @@ FUNCTION {bst.kansuji.jp}
 % 
 FUNCTION {bst.tatebo.definition}
 { "\hskip.1em \leavevmode\rule[0ex]{1em}{.3pt}\hskip0.1em" }    % (default)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% year の表示位置を変更。
+%
+% この関数でyearが表示される位置を変更できます。
+%
+% #0 ->  yearは author のすぐ後に表示されます。
+% 非ゼロ -> article タイプ以外では year は 最後（note フィールドの前）に表示されます。
+%
+% Article タイプのエントリーでは次のように変わります。
+% 
+% #1 -> year は最後に表示されます。
+% #2 -> year は journal name の後に表示されます。
+% #3 -> year は volume の後に表示されます。
+%
+FUNCTION {bst.year.position}
+{ #0 }    % autho のすぐ後 (default).
+% { #1 }    % 最後（note の前）
+% { #2 }    % journal name の後（article entryのみ）
+% { #3 }    % volume の後（article entryのみ）
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1198,9 +1214,10 @@ STRINGS { s t ss tt sss }
 STRINGS { year.num }
 STRINGS { num.kanji }
 STRINGS { preone preten }
-STRINGS { last.sort.label next.extra prev.author this.author }
+STRINGS { last.sort.label next.extra prev.author prev.author.aer this.author }
 STRINGS { hang }
 STRINGS { item.type }
+STRINGS { tempa tempb tempc }
 
 %% 整数型大域変数
 INTEGERS { nameptr namesleft numnames  alphabet.in.author name.num }
@@ -1211,6 +1228,7 @@ INTEGERS { len }
 INTEGERS { last.extra.num }
 INTEGERS { output.state before.all mid.sentence after.sentence after.block int }
 INTEGERS { last.period.comma }
+INTEGERS { len1.aer len2.aer i.aer }
 
 %%% 変数の説明
 
@@ -1704,7 +1722,8 @@ FUNCTION {format.names}
       nameptr #1 >
         % 二番目以降の author のケースでの処理
 	{ namesleft #1 >
- 	    { s is.kanji.str$
+%  	    { s is.kanji.str$
+ 	    { is.kanji.entry
  		{ bst.and.jp  * t * }
  		{ ", " * t * }
 	      if$
@@ -1715,7 +1734,8 @@ FUNCTION {format.names}
                     { bst.and.others * }
  		  if$
  		}
-  		{ s is.kanji.str$
+%   		{ s is.kanji.str$
+    		{ is.kanji.entry
  		    { bst.and.jp * t * }
 		    { numnames #2 =
   			{ bst.and * t * }
@@ -1736,12 +1756,153 @@ FUNCTION {format.names}
   while$
 }
 
+% remove successive periods (commas) from author
+FUNCTION {remove.ss.period.auth}
+{ 's :=
+  'tempc :=
+  s format.names 'tempa :=
+
+  tempc is.kanji.str$
+    { bst.author.pre.jp tempa * 'tempa := }
+    { bst.author.pre tempa * 'tempa := }
+  if$
+
+  tempc is.kanji.str$
+    { bst.author.post.jp 'tempb := }
+    { bst.author.post 'tempb := }
+  if$
+
+  tempb #1 #1 substring$ "}" =
+    % bst.author.post(.jp) の1文字目が"}"なら、何もしない。
+    { tempa tempb * }
+    % そうじゃないなら、tempa の最後の一文字と tempb の最初の一文字を比較
+    { tempa #-1 #1 substring$ tempb #1 #1 substring$ =
+        % 等しければ「tempa + tempb の最初の一文字を除いた文字列」
+        { tempa tempb #2 global.max$ substring$ * }
+        % 等しくなれば「tempa + tempb」
+        { tempa tempb * }
+      if$
+    }
+  if$
+}
+
+FUNCTION {insert.bysame}
+{ is.kanji.entry
+     { " \bysamejp{} " }
+     { " \bysame{} " }
+  if$
+}
+
+% <prev name list> <new name list> compare.names <modified name list>
+FUNCTION {compare.names.aer}
+{ 's :=
+  'tempa :=
+
+%   "current.author = " s * "\\" * write$ newline$
+%   "prev.author = " tempa * "\\" * write$ newline$
+
+  tempa num.names$ 'len1.aer :=  % len1 = the number of previous authors
+  s num.names$ 'len2.aer :=         % len2 = the number of current authors
+
+% len1.aer := min(len1.aer,len2.aer)
+% len1 -> min{ the number of previous authors, the number of current authors }
+  len1.aer len2.aer >
+    { len2.aer 'len1.aer := }
+    { }
+  if$
+
+% start with an empty string, then while the components are the same
+% add "\bysame"
+  ""
+  #1 'i.aer :=
+
+  { i.aer len1.aer > not }
+    { tempa i.aer "{ff }{vv }{ll}{ jj}" format.name$
+      s i.aer "{ff }{vv }{ll}{ jj}" format.name$
+      =
+        { #1 i.aer <
+            { " and " * }       % \bysame で省略する著者の前につく and 
+            { }
+          if$
+          insert.bysame *
+          i.aer #1 + 'i.aer := } 
+        { #-1 'len1.aer := }
+      if$
+    }
+  while$
+
+% add the rest of the second string
+  { i.aer len2.aer > not }
+    { #1 i.aer <
+        { " and " * }
+        { }
+      if$
+      s i.aer "{ff }{vv }{ll}{ jj}" format.name$ *
+      i.aer #1 + 'i.aer :=
+    }
+  while$
+}
+
 %%% author の整形
 FUNCTION {format.authors}
 { author empty$
     { "" }
+    { bst.use.bysame #2 =
+        { prev.author.aer author compare.names.aer 's :=
+%           "prev.author.aer = \texttt{" prev.author.aer * "}\\" * write$ % for debug
+%           "\noindent s = \texttt{" s * "}\\" * write$ % for debug
+          author 'prev.author.aer :=
+          }
+        { author 's := }
+      if$
+      extra.label.bysame "bysame" =
+	{ insert.bysame }
+ 	{ author s remove.ss.period.auth }
+      if$
+    }
+  if$
+}
+
+%%% editor の整形
+FUNCTION {format.editors}
+{ editor empty$
+    { "" }
+    { bst.use.bysame #2 =
+        { prev.author.aer editor compare.names.aer 's :=
+          editor 'prev.author.aer := }
+        { editor 's := }
+      if$
+      extra.label.bysame "bysame" =
+	{ #1 'bysame.check :=
+	  insert.bysame }
+ 	{ editor s remove.ss.period.auth }
+      if$
+      #1 bysame.check =
+        { "" * }
+        { editor num.names$ #1 >
+ 	  { editor is.kanji.str$
+              { bst.editor.jp * }
+	      { bst.editors * }
+	    if$
+ 	  }
+  	  { editor is.kanji.str$
+ 	      { bst.editor.jp * }
+	      { bst.editor * }
+	    if$
+ 	  }
+        if$
+        }
+      if$
+    }
+  if$
+}
+
+%%% author の整形
+FUNCTION {format.authors.alt}
+{ author empty$
+    { "" }
     { extra.label.bysame "bysame" =
-	{"\bysame "}
+	{ insert.bysame }
  	{ author is.kanji.str$
  	    { bst.author.pre.jp author format.names * bst.author.post.jp * }
    	    { bst.author.pre author format.names * bst.author.post * }
@@ -1753,12 +1914,12 @@ FUNCTION {format.authors}
 }
 
 %%% editor の整形
-FUNCTION {format.editors}
+FUNCTION {format.editors.alt}
 { editor empty$
     { "" }
     { extra.label.bysame "bysame" =
 	{ #1 'bysame.check :=
-	   "\bysame " }
+	  insert.bysame }
 	{ editor is.kanji.str$
 	    { bst.author.pre.jp editor format.names * }
  	    { bst.author.pre editor format.names * bst.author.post * }
@@ -2452,6 +2613,10 @@ FUNCTION {format.volume}
         { bst.volume.pre.jp volume convert.num * bst.volume.post.jp * }
 	{ bst.volume.pre volume * bst.volume.post * }
       if$
+      bst.year.position #3 =
+        { format.year * }
+        'skip$
+      if$
     }
   if$
 }
@@ -2752,8 +2917,7 @@ FUNCTION {format.hoyakusho}
   jyear empty$
   and and and and
     { "" }
-    { 
-      is.kanji.entry
+    { is.kanji.entry
         { bst.touten.jp *  }
         { ", " *  }
       if$
@@ -2920,19 +3084,24 @@ FUNCTION {test}
 FUNCTION {article}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
   format.title "title" output.check.nocomma
 
   format.journal "journal" output.check.nocomma
+  bst.year.position #2 =
+    { format.date output.nocomma }
+    'skip$
+  if$
   format.vol.num.pages output.nocomma
 
-  bst.year.backward #0 =
-    { format.month output.nocomma }
+  bst.year.position #1 =
     { format.date output.nocomma }
+    { format.month output.nocomma }
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
   format.note output.nocomma
@@ -2950,7 +3119,7 @@ FUNCTION {book}
       "author and editor" editor either.or.check 
     }
   if$
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -2962,13 +3131,16 @@ FUNCTION {book}
 
   format.edition output.nocomma
   format.book.pages output.nocomma
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.hoyakusho output.nocomma
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -2983,8 +3155,10 @@ FUNCTION {booklet}
   format.misc.title "title" output.check.nocomma
   format.howpublished output.nocomma
   format.address output.nocomma
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3000,7 +3174,7 @@ FUNCTION {inbook}
       "author and editor" editor either.or.check
     }
   if$
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3012,12 +3186,15 @@ FUNCTION {inbook}
   format.chapter.pages "chapter and pages" output.check.nocomma
   format.number.series output.nocomma
   output.publisher.address
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3028,7 +3205,7 @@ FUNCTION {inbook}
 FUNCTION {incollection}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3039,12 +3216,15 @@ FUNCTION {incollection}
   output.address.organization.publisher
   format.edition output.nocomma
   format.chapter.pages output.nocomma
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3055,7 +3235,7 @@ FUNCTION {incollection}
 FUNCTION {inproceedings}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3066,12 +3246,15 @@ FUNCTION {inproceedings}
   format.number.series output.nocomma
   format.pages output.nocomma
   output.address.organization.publisher
-  bst.year.backward #0 =
-    { format.month output.nocomma }
+
+  bst.year.position #0 = not
     { format.date output.nocomma }
+    { format.month output.nocomma }
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3097,7 +3280,7 @@ FUNCTION {manual}
     }
     { format.authors output.nonnull.nocomma }
   if$
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3113,12 +3296,15 @@ FUNCTION {manual}
     { output.address.organization.publisher }
   if$
   format.edition output.nocomma
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3129,7 +3315,7 @@ FUNCTION {manual}
 FUNCTION {mastersthesis}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3137,12 +3323,15 @@ FUNCTION {mastersthesis}
   format.mthesis format.thesis.type output.nonnull.nocomma
   format.school "school" output.check.nocomma
   format.address output.nocomma
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3153,19 +3342,23 @@ FUNCTION {mastersthesis}
 FUNCTION {misc}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
   format.misc.title output.nocomma
   format.howpublished output.nocomma
+
   remove.irrelevant.kutoten
-  bst.year.backward #0 =
-    { format.month output.nocomma }
+
+  bst.year.position #0 = not
     { format.date output.nocomma }
+    { format.month output.nocomma }
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
   empty.misc.check
@@ -3177,19 +3370,23 @@ FUNCTION {misc}
 FUNCTION {online}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
   format.misc.title output.nocomma
   format.howpublished output.nocomma
+
   remove.irrelevant.kutoten
-  bst.year.backward #0 =
-    { format.month output.nocomma }
+
+  bst.year.position #0 = not
     { format.date output.nocomma }
+    { format.month output.nocomma }
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
   empty.misc.check
@@ -3201,7 +3398,7 @@ FUNCTION {online}
 FUNCTION {phdthesis}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3213,12 +3410,15 @@ FUNCTION {phdthesis}
     'skip$
     { format.address output.nocomma }
   if$
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3232,7 +3432,7 @@ FUNCTION {proceedings}
     { organization output.nocomma }
     { format.editors output.nonnull.nocomma }
   if$
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3240,12 +3440,15 @@ FUNCTION {proceedings}
   format.bvolume output.nocomma
   format.number.series output.nocomma
   output.address.organization.publisher
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3256,7 +3459,7 @@ FUNCTION {proceedings}
 FUNCTION {techreport}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
@@ -3265,12 +3468,15 @@ FUNCTION {techreport}
   format.institution "institution" output.check.nocomma
   format.address output.nocomma
   format.chapter.pages output.nocomma %%% added
-  bst.year.backward #0 =
-    'skip$
+
+  bst.year.position #0 = not
     { format.year "year" output.check.nocomma }
+    'skip$
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3281,17 +3487,24 @@ FUNCTION {techreport}
 FUNCTION {unpublished}
 { output.bibitem
   format.authors "author" output.check.nocomma
-  bst.year.backward #0 =
+  bst.year.position #0 =
     { format.year "year" output.check.nocomma }
     'skip$
   if$
   format.title "title" output.check.nocomma
-  bst.year.backward #0 =
-    { format.month remove.pre.comma.period output.nocomma }
+
+  bst.year.position #0 = not
     { format.date remove.pre.comma.period output.nocomma }
+    { month empty$
+        'skip$
+        { format.month remove.pre.comma.period output.nocomma }
+      if$
+    }
   if$
+
   format.url output.nocomma
   format.doi output.nocomma
+
   format.note output.nocomma
   fin.entry
 }
@@ -3412,6 +3625,10 @@ FUNCTION {sort.format.names}
            if$
          }
          { s nameptr "{ll}{ ff}{ jj}" format.name$ 't := }
+      if$
+      nameptr #1 =
+         { t " 0 " * 't := }
+         'skip$
       if$
       nameptr numnames = t "others" = and
  	{ s is.kanji.str$
@@ -4310,8 +4527,7 @@ SORT
 % \bysame を使う場合は、sort.label が前回のものと同一であれば、extra.labelをセット
 % author が前回のものと同一であれば、extra.label.bysameをセット
 FUNCTION {forward.pass}
-{ bst.use.bysame #0 =
-%   bst.no.sort #0 = not or
+{ bst.use.bysame #0 = bst.use.bysame #2 = or
     % \bysame を使わない場合
     { last.sort.label sort.label.abb =
         { last.extra.num #1 + 'last.extra.num :=
@@ -4336,10 +4552,10 @@ FUNCTION {forward.pass}
       author empty$
         { editor empty$
           { "" }
-          'format.editors
+          'format.editors.alt
           if$
         }
-        'format.authors
+        'format.authors.alt
       if$
       'this.author :=
       % format.names 'this.author :=
@@ -4384,6 +4600,38 @@ ITERATE {presort.two}
 %%% sort.key$ を利用して文献の並べ替え (２回目)
 SORT
 
+FUNCTION {reset.prev.author}
+{ "xxyyzz" 'prev.author := }
+
+EXECUTE {reset.prev.author}
+
+FUNCTION {forward.pass.two}
+{ bst.use.bysame #1 = 
+    { author empty$
+        { editor empty$
+          { "" }
+          'format.editors.alt
+          if$
+        }
+        'format.authors.alt
+     if$
+     'this.author :=
+     this.author prev.author =
+        { "bysame" 'extra.label.bysame := }
+        { this.author "" =
+            { "abcxyz" }
+            'this.author
+          if$
+          'prev.author :=
+        }
+     if$
+    }
+   'skip$
+  if$
+}
+
+ITERATE {forward.pass.two}
+
 FUNCTION{punctuation}
 {
   "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"  write$ newline$
@@ -4412,7 +4660,13 @@ FUNCTION {begin.bib}
        "\ifx\undefined\bysame" write$ newline$
        "\newcommand{\bysame}{" bst.bysame.definition * "}" *
        write$ newline$
-       "\fi" write$ newline$ newline$ }
+       "\fi" write$ newline$ newline$
+       "%%% Definition of \bysamejp" write$ newline$
+       "\ifx\undefined\bysamejp" write$ newline$
+       "\newcommand{\bysamejp}{" bst.bysame.definition.jp * "}" *
+       write$ newline$
+       "\fi" write$ newline$ newline$
+     }
   if$
   %% 数字を漢数字に変換するときの
   bst.kansuji.jp #0 =
@@ -4449,7 +4703,6 @@ FUNCTION {begin.bib}
   if$
 
   bst.thebibliography.begin
-  newline$
 
   %% 変数 index を初期化している．
   #0 'index :=
@@ -4457,9 +4710,7 @@ FUNCTION {begin.bib}
 
 FUNCTION {end.bib}
 {
-  newline$
   bst.thebibliography.end
-  newline$
  }
 
 EXECUTE {begin.bib}
